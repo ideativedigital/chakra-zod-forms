@@ -1,0 +1,28 @@
+import { Meta } from '@storybook/blocks'
+
+<Meta title="Docs/Getting Started" />
+
+# Getting Started
+
+Build forms from Zod schemas.
+
+`zod-forms` provides `createZodForm(schema)` to generate typed form building blocks.
+
+## Quick start
+
+```tsx
+import { z } from 'zod'
+import { createZodForm } from 'zod-forms'
+
+const schema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+})
+
+const { Form, Field, SubmitButton } = createZodForm(schema)
+```
+
+## Recipes
+
+Use the **Recipes** section in Storybook sidebar for live, interactive examples with submit/error JSON output.
+

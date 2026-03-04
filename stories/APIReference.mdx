@@ -1,0 +1,30 @@
+import { Meta } from '@storybook/blocks'
+
+<Meta title="Docs/API Reference" />
+
+# API Reference
+
+Core exports for schema-driven forms.
+
+## `createZodForm(schema)`
+
+Returns:
+
+- `Form`
+- `Field`
+- `Fieldset`
+- `FormDialog`
+- `SubmitButton`
+- `useForm`
+- `useCurrentForm`
+
+## Field behavior
+
+- `Field` is for a single control.
+- `Fieldset` is for grouped/composite controls (multiple inputs/selects).
+
+## Matchers
+
+- `matches(schema)` for reference-based schema matching.
+- `matchesObjectWithKeys`, `matchesObjectWithExactKeys`, `matchesMeta`, and combinators from matcher helpers.
+
