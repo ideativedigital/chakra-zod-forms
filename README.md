@@ -6,7 +6,7 @@ Type-safe form helpers for React Hook Form + Zod + Chakra UI.
 
 ## What this library provides
 
-- `createZodForm(schema)` factory with typed `Form`, `Field`, `Fieldset`, and `FormDialog`
+- `createZodForm(schema)` factory with typed `Form`, `Field`, `Fieldset`, `FormDialog`, and async `createFormDialog`
 - `ManagedField` / `ManagedFieldset` wrappers to reduce form boilerplate
 - `AutoField` that picks input renderers from Zod field types
 - Extensible auto-field type manager and matcher utilities
@@ -65,6 +65,44 @@ export function UserForm() {
 }
 ```
 
+## Async form dialog
+
+`createZodForm` also provides `createFormDialog()` for promise-based dialogs built on `createAsyncDialog`.
+
+```tsx
+const { createFormDialog, Field } = createZodForm(schema)
+const [openUserForm, UserFormModal] = createFormDialog(
+  () => (
+    <>
+      <Field name="firstName" label="First name" autofield />
+      <Field name="age" label="Age" autofield />
+      <Field name="isActive" label="Active" autofield />
+    </>
+  ),
+  { submitText: 'Create' }
+)
+
+function Page() {
+  return (
+    <>
+      <button
+        type="button"
+        onClick={async () => {
+          const value = await openUserForm({
+            title: 'Create user',
+            defaultValue: { firstName: '', age: 18, isActive: true }
+          })
+          // value is FormValue | undefined
+        }}>
+        Open Form Dialog
+      </button>
+
+      <UserFormModal />
+    </>
+  )
+}
+```
+
 ## AutoField customization
 
 Register a custom renderer for specific Zod shapes:
@@ -102,6 +140,7 @@ const manager = createAutoFieldTypeManagerWithDefaults([
 Primary exports from `src/index.ts`:
 
 - `createZodForm`
+- `createAsyncDialog`, `AsyncDialogController`
 - `ManagedField`, `ManagedFieldset`
 - `createSubForm`, `FormPartProvider`, `FormPartManagedField`
 - `AutoField` and all `auto-field/*` utilities

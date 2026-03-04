@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import React from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
@@ -23,7 +23,17 @@ vi.mock('../src/components/ui/button', () => ({
 
 vi.mock('../src/components/ui/dialog', () => ({
   Dialog: {
-    Simple: ({ children }: React.PropsWithChildren) => <div data-testid="dialog-simple">{children}</div>
+    Simple: ({
+      children,
+      onClose
+    }: React.PropsWithChildren<{ onClose: () => void }>) => (
+      <div data-testid="dialog-simple">
+        <button type="button" data-testid="dialog-close" onClick={onClose}>
+          Close
+        </button>
+        {children}
+      </div>
+    )
   },
   DialogActionTrigger: ({ children }: React.PropsWithChildren) => <>{children}</>,
   DialogBody: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
@@ -124,5 +134,107 @@ describe('createZodForm extra behavior', () => {
     )
 
     expect(screen.getByTestId('managed-fieldset')).toHaveAttribute('data-autofield', 'false')
+  })
+
+  it('createFormDialog resolves with submitted values', async () => {
+    const schema = z.object({
+      value: z.string().default('done')
+    })
+    const { createFormDialog } = createZodForm(schema)
+    const [openDialog, AsyncFormDialog] = createFormDialog(() => <div>Body</div>)
+
+    render(<AsyncFormDialog />)
+
+    let submitPromise!: Promise<{ value: string } | undefined>
+    await act(async () => {
+      submitPromise = openDialog({
+        title: 'Async dialog',
+        submitText: 'Confirm',
+        defaultValue: { value: 'saved' }
+      })
+    })
+
+    await act(async () => {
+      fireEvent.click(await screen.findByText('Confirm'))
+    })
+
+    await expect(submitPromise).resolves.toEqual({ value: 'saved' })
+  })
+
+  it('createFormDialog resolves undefined when dialog is closed', async () => {
+    const schema = z.object({
+      value: z.string().default('done')
+    })
+    const { createFormDialog } = createZodForm(schema)
+    const [openDialog, AsyncFormDialog] = createFormDialog(() => <div>Body</div>)
+
+    render(<AsyncFormDialog />)
+
+    let submitPromise!: Promise<{ value: string } | undefined>
+    await act(async () => {
+      submitPromise = openDialog({
+        title: 'Async dialog',
+        defaultValue: { value: 'saved' }
+      })
+    })
+
+    await act(async () => {
+      fireEvent.click(await screen.findByTestId('dialog-close'))
+    })
+
+    await expect(submitPromise).resolves.toBeUndefined()
+  })
+
+  it('createFormDialog merges base props with openDialog props', async () => {
+    const schema = z.object({
+      value: z.string().default('done')
+    })
+    const { createFormDialog } = createZodForm(schema)
+    const [openDialog, AsyncFormDialog] = createFormDialog(() => <div>Body</div>, {
+      submitText: 'Base Submit'
+    })
+
+    render(<AsyncFormDialog />)
+
+    let submitPromise!: Promise<{ value: string } | undefined>
+    await act(async () => {
+      submitPromise = openDialog({
+        title: 'Async dialog',
+        defaultValue: { value: 'saved' }
+      })
+    })
+
+    await act(async () => {
+      fireEvent.click(await screen.findByText('Base Submit'))
+    })
+
+    await expect(submitPromise).resolves.toEqual({ value: 'saved' })
+  })
+
+  it('createFormDialog supports baseProps-first overload', async () => {
+    const schema = z.object({
+      value: z.string().default('done')
+    })
+    const { createFormDialog } = createZodForm(schema)
+    const [openDialog, AsyncFormDialog] = createFormDialog(
+      { submitText: 'Create With Overload' },
+      () => <div>Body</div>
+    )
+
+    render(<AsyncFormDialog />)
+
+    let submitPromise!: Promise<{ value: string } | undefined>
+    await act(async () => {
+      submitPromise = openDialog({
+        title: 'Async dialog',
+        defaultValue: { value: 'saved' }
+      })
+    })
+
+    await act(async () => {
+      fireEvent.click(await screen.findByText('Create With Overload'))
+    })
+
+    await expect(submitPromise).resolves.toEqual({ value: 'saved' })
   })
 })

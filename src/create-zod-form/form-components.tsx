@@ -1,87 +1,27 @@
 'use client'
-import { StackProps, VStack } from '@chakra-ui/react'
+import { VStack } from '@chakra-ui/react'
 import { standardSchemaResolver } from '@hookform/resolvers/standard-schema'
-import { ForwardRefExoticComponent, forwardRef, JSX, ReactNode, RefAttributes, useEffect } from 'react'
-import {
-  DefaultValues,
-  FieldPath,
-  FieldValues,
-  FormProvider,
-  SubmitErrorHandler,
-  SubmitHandler,
-  useForm,
-  useFormContext,
-  UseFormProps,
-  UseFormReset,
-  UseFormReturn
-} from 'react-hook-form'
+import { useEffect } from 'react'
+import { DefaultValues, FieldPath, FormProvider, useForm, useFormContext } from 'react-hook-form'
 import { ZodType } from 'zod'
-import { Button, ButtonProps } from './components/ui/button'
+import { Button } from '../components/ui/button'
 import {
   Dialog,
   DialogActionTrigger,
   DialogBody,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-  SimpleDialogProps
-} from './components/ui/dialog'
-import { ManagedField, ManagedFieldProps } from './managed-field'
-import { ManagedFieldset, ManagedFieldsetProps } from './managed-fieldset'
-import { AnyObject } from './utils/types'
+  DialogTitle
+} from '../components/ui/dialog'
+import { ManagedField } from '../managed-field'
+import { ManagedFieldset } from '../managed-fieldset'
+import { AnyObject } from '../utils/types'
+import { ZodFieldProps, ZodFieldsetProps, ZodFormDialogProps, ZodFormProps } from './types'
 
-export type ZodFieldProps<T extends FieldValues, P extends FieldPath<T>> = Omit<
-  ManagedFieldProps<T, P>,
-  'control'
->
-
-export type ZodFieldsetProps<T extends FieldValues, P extends FieldPath<T>> = Omit<
-  ManagedFieldsetProps<T, P>,
-  'control'
->
-
-export type ZodFormDialogProps<T extends AnyObject> = SimpleDialogProps & {
-  title: ReactNode
-  cancelText?: string
-  submitText?: string
-  onSubmit: SubmitHandler<T>
-  onSubmitFailed?: SubmitErrorHandler<T>
-  closeOnSubmit?: boolean
-  defaultValue?: DefaultValues<T>
-  resetFn?: (reset: UseFormReset<T>, t: DefaultValues<T>) => void
-  zodForm?: UseFormReturn<T>
-  actions?: ReactNode
-}
-
-export type ZodFormProps<T extends AnyObject> = Omit<StackProps, 'onSubmit' | 'defaultValue' | 'value'> & {
-  onSubmit: SubmitHandler<T>
-  onSubmitFailed?: SubmitErrorHandler<T>
-  defaultValue?: DefaultValues<T>
-  resetFn?: (reset: UseFormReset<T>, t: DefaultValues<T>) => void
-  zodForm?: UseFormReturn<T>
-}
-export type ZodFormResult<T extends AnyObject> = {
-  useForm: (opts?: Omit<UseFormProps<T, any>, 'resolver'>) => UseFormReturn<T>
-  useCurrentForm: () => UseFormReturn<T>
-  SubmitButton: ForwardRefExoticComponent<Omit<ButtonProps, 'loading'> & RefAttributes<HTMLButtonElement>>
-  Form: (props: ZodFormProps<T>) => JSX.Element
-  Field: <P extends FieldPath<T>>(props: ZodFieldProps<T, P>) => JSX.Element
-  Fieldset: <P extends FieldPath<T>>(props: ZodFieldsetProps<T, P>) => JSX.Element
-  FormDialog: (props: ZodFormDialogProps<T>) => JSX.Element
-}
-
-export const SubmitButton = forwardRef<HTMLButtonElement, Omit<ButtonProps, 'loading'>>(
-  (p, ref) => {
-    const ctx = useFormContext()
-    if (!ctx) throw new Error('SubmitButton must be used below Form or FormProvider')
-
-    return <Button {...p} loading={ctx.formState.isSubmitting} type='submit' ref={ref} />
-  }
-)
-
-export function createZodForm<T extends AnyObject>(ztype: ZodType<T>): ZodFormResult<T> {
-  const FormSubmitButton = SubmitButton
-
+export function createFormComponents<T extends AnyObject>(
+  ztype: ZodType<T>,
+  FormSubmitButton: React.ComponentType<React.PropsWithChildren>
+) {
   function Field<P extends FieldPath<T>>({ children, ...p }: ZodFieldProps<T, P>) {
     const ctx = useFormContext<T>()
     if (!ctx) throw new Error('FormContral must be used below Form or FormProvider')
@@ -104,6 +44,7 @@ export function createZodForm<T extends AnyObject>(ztype: ZodType<T>): ZodFormRe
       </ManagedFieldset>
     )
   }
+
   function Form({
     onSubmit,
     onSubmitFailed,
@@ -216,13 +157,5 @@ export function createZodForm<T extends AnyObject>(ztype: ZodType<T>): ZodFormRe
     )
   }
 
-  return {
-    useForm: opts => useForm<T>({ resolver: standardSchemaResolver(ztype), ...opts }),
-    useCurrentForm: () => useFormContext<T>(),
-    SubmitButton: FormSubmitButton,
-    Form,
-    Field,
-    Fieldset,
-    FormDialog
-  }
+  return { Field, Fieldset, Form, FormDialog } as const
 }
