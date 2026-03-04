@@ -2,6 +2,8 @@
 
 Type-safe form helpers for React Hook Form + Zod + Chakra UI.
 
+[![Documentation](https://img.shields.io/badge/docs-storybook-blue)](https://ideativedigital.github.io/chakra-zod-forms/)
+
 ## What this library provides
 
 - `createZodForm(schema)` factory with typed `Form`, `Field`, `Fieldset`, and `FormDialog`
@@ -31,26 +33,26 @@ Direct runtime dependencies used by this package:
 ## Quick start
 
 ```tsx
-import { Button } from '@chakra-ui/react'
-import { z } from 'zod'
-import { createZodForm } from '@ideative/chakra-zod-forms'
+import { Button } from "@chakra-ui/react";
+import { z } from "zod";
+import { createZodForm } from "@ideative/chakra-zod-forms";
 
 const schema = z.object({
   firstName: z.string().min(1),
   age: z.number().min(18),
   isActive: z.boolean().default(true),
-})
+});
 
-type FormValue = z.infer<typeof schema>
+type FormValue = z.infer<typeof schema>;
 
-const { Form, Field } = createZodForm<FormValue>(schema)
+const { Form, Field } = createZodForm<FormValue>(schema);
 
 export function UserForm() {
   return (
     <Form
-      defaultValue={{ firstName: '', age: 18, isActive: true }}
+      defaultValue={{ firstName: "", age: 18, isActive: true }}
       onSubmit={(value) => {
-        console.log(value)
+        console.log(value);
       }}
     >
       <Field name="firstName" label="First name" autofield />
@@ -59,7 +61,7 @@ export function UserForm() {
 
       <Button type="submit">Save</Button>
     </Form>
-  )
+  );
 }
 ```
 
@@ -124,6 +126,7 @@ pnpm storybook:build
 ## Documentation
 
 Storybook is the documentation surface for this project.
+Docs: https://ideativedigital.github.io/chakra-zod-forms/?path=/docs/docs-api-reference--docs
 Deployment workflow: `.github/workflows/deploy-storybook.yml`.
 
 ## License
